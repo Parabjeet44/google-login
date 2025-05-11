@@ -1,29 +1,31 @@
 "use client";
+import React from 'react';
+import { Button } from '@mui/material';
+import { auth } from '../firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useState } from 'react';
 
-import { GoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
-
-export default function LoginPage() {
-  const [success, setSuccess] = useState(false);
+const GoogleSignUp = () => {
+  const [signup,setSignup] = useState(false);
+  const handleSignUp = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      setSignup(true);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center mt-20">
-      <h1 className="text-3xl">Login</h1>
-      <div className="mt-7 ">
-        <GoogleLogin
-          onSuccess={(credentialResponse) => {
-            console.log(credentialResponse);
-            setSuccess(true);
-          }}
-          onError={() => {
-            console.log("Login Failed");
-            setSuccess(false);
-          }}
-        />
-      </div>
-      {success && (
-        <p className="mt-4 text-green-600 font-semibold">Login Successful!</p>
-      )}
+    <div className='flex flex-col items-center justify-center h-screen gap-4'>
+      <h1 className='text-3xl font-extrabold mb-9'>Sign Up with Google</h1>
+      <Button variant="contained" onClick={handleSignUp}>
+        Sign Up with Google
+      </Button>
+      {signup && <p>Sign Up Successful!</p>}
     </div>
   );
-}
+};
+
+export default GoogleSignUp;
