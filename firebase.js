@@ -3,14 +3,15 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBhRY1uUjnNZbXoxVnvtUIfTqbNxddCDv0",
-  authDomain: "nextjs-mui-c04cd.firebaseapp.com",
-  projectId: "nextjs-mui-c04cd",
-  storageBucket: "nextjs-mui-c04cd.firebasestorage.app",
-  messagingSenderId: "862859835759",
-  appId: "1:862859835759:web:b8516a063795027340d09a",
-  measurementId: "G-7N2R4TYN7M"
-};
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  };
+  
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
@@ -50,8 +51,8 @@ export const requestNotificationPermission = async () => {
   try {
     const { getToken } = await import("firebase/messaging");
     const currentToken = await getToken(messaging, {
-      vapidKey: "your-vapid-key"
-    });
+        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+      });
     if (currentToken) {
       console.log("FCM Token:", currentToken);
     } else {
