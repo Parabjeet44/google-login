@@ -1,7 +1,13 @@
+// firebase.js
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+} from "firebase/auth";
 
-// Firebase configuration
+// Firebase configuration (DON'T include client_id here)
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -12,18 +18,49 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase App
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let analytics;
+// Google Auth Provider with redirect support
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({
+  prompt: "select_account", // Always show account picker
+});
+
+// Sign up with Google using redirect (popup fails in WebView)
+export const googleSignUp = async () => {
+  try {
+    await signInWithRedirect(auth, provider);
+  } catch (error) {
+    console.error("Google Sign-In Error:", error.message);
+  }
+};
+
+// Handle result after redirect
+export const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      console.log("User signed in:", result.user);
+
+      // 👇 Send message to React Native WebView if inside it
+      if (typeof window !== "undefined" && window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage("LOGIN_SUCCESS");
+      }
+    }
+  } catch (error) {
+    console.error("Redirect Sign-In Error:", error.message);
+  }
+};
+
+// Optional: FCM push notification support (if needed)
 let messaging;
 
-// Lazy initialize analytics and messaging in a safe way
 export const initFirebaseServices = async () => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const { getAnalytics } = await import("firebase/analytics");
-    analytics = getAnalytics(app);
+    getAnalytics(app);
 
     const { getMessaging, onMessage } = await import("firebase/messaging");
     messaging = getMessaging(app);
@@ -34,50 +71,23 @@ export const initFirebaseServices = async () => {
   }
 };
 
-// Google Sign-Up with Redirect (for WebView compatibility)
-export const googleSignUp = async () => {
-  const provider = new GoogleAuthProvider();
-  try {
-    await signInWithRedirect(auth, provider);
-  } catch (error) {
-    console.error("Google Sign-In Error:", error.message);
-  }
-};
-
-// Handle the redirect result after login
-export const handleRedirectResult = async () => {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      const user = result.user;
-      console.log("User signed in:", user);
-      // You can post message back to WebView or do any post-login actions here
-      if (typeof window !== 'undefined' && window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage("LOGIN_SUCCESS");
-      }
-    }
-  } catch (error) {
-    console.error("Error handling redirect result:", error.message);
-  }
-};
-
-// Request notification permission and get FCM token
 export const requestNotificationPermission = async () => {
   if (typeof window === "undefined" || !messaging) return;
 
   try {
     const { getToken } = await import("firebase/messaging");
-    const currentToken = await getToken(messaging, {
+    const token = await getToken(messaging, {
       vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
     });
-    if (currentToken) {
-      console.log("FCM Token:", currentToken);
+
+    if (token) {
+      console.log("FCM Token:", token);
     } else {
-      console.log("No FCM token retrieved");
+      console.log("No FCM token available");
     }
-  } catch (err) {
-    console.error("FCM token error:", err);
+  } catch (error) {
+    console.error("Error retrieving FCM token:", error);
   }
 };
 
-export { auth, messaging };
+export { auth, provider, messaging };
