@@ -1,21 +1,25 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
-import { auth } from '../firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { useState } from 'react';
+import { auth, handleRedirectResult } from '../firebase'; 
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 
 const GoogleSignUp = () => {
-  const [signup,setSignup] = useState(false);
+  const [signup, setSignup] = useState(false);
+
   const handleSignUp = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      setSignup(true);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       alert(error.message);
     }
   };
+
+  // Handle the redirect result on component load
+  useEffect(() => {
+    handleRedirectResult();
+  }, []);
 
   return (
     <div className='flex flex-col items-center justify-center h-screen gap-4'>
