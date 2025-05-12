@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect } from 'react';
 import { googleSignUp, handleRedirectResult } from '../firebase';
 import { Button } from '@mui/material';
